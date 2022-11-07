@@ -1,0 +1,16 @@
+"spritecard"
+{
+	$basetexture "particle/butterfly02"
+	//$basetexture2 "particle/7smoke"
+	//$DUALSEQUENCE 1
+	$SEQUENCE_BLEND_MODE 1 //2
+	//$MAXLUMFRAMEBLEND1 0
+	//$MAXLUMFRAMEBLEND2 1
+	//$ZOOMANIMATESEQ2 4
+	$blendframes 1
+	//$EXTRACTGREENALPHA 1
+	$depthblend 1
+	//"!srgb?$overbrightfactor" "1.2"
+	//$STARTFADESIZE 1
+	//$ENDFADESIZE 1.4
+}
