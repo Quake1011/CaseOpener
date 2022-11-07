@@ -1,0 +1,8 @@
+"unlitgeneric"
+{
+	"$additive" 1
+	"$overbrightfactor" .75
+	"$basetexture" "particle/2joints/heart"
+	"$vertexcolor" 1
+	"$vertexalpha" 1
+}

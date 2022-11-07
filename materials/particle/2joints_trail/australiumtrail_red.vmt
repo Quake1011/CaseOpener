@@ -1,0 +1,9 @@
+"UnlitGeneric"
+{
+	"$basetexture" "particle/2joints_trail/australium_trail"
+	"$translucent" "1"
+	//"$color2" "[1 .3 .2]"
+	"$color2" "[1 0.72 .1]"
+	"$vertexalpha" "1"
+	"$vertexcolor" "1"
+}

@@ -1,0 +1,7 @@
+"SpriteCard"
+{
+	"$basetexture" "particle/2joints_2pack/yellowflare"
+	"$additive" "1"
+	"$vertexcolor" 1
+	"$vertexalpha" 1
+}
