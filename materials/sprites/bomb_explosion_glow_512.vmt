@@ -1,0 +1,8 @@
+"SpriteCard"
+{
+	"$basetexture" "sprites\bomb_explosion_glow_512"
+	$additive 1
+	$vertexcolor 1
+	$vertexalpha 1
+	$depthblend 1
+}
