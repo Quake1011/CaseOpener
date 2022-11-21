@@ -1089,7 +1089,7 @@ public Action OnTouchDelete(Handle hNewTimer, int activator)
 
 void RegCommandsFromKv(const char[] key, ConCmd Callback, const char[] desc, const char[] defcmd)
 {
-	if(key[0] != NULL_STRING)
+	if(StrEqual(key[0] != '\0');
 	{
 		char keybuffer[2048], cmds[32][64];
 		kv.Rewind();
