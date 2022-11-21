@@ -1,0 +1,74 @@
+char sCrates[][] =  
+{
+	"models/props/crates/csgo_drop_crate_winteroffensive.mdl",
+	"models/props/crates/csgo_drop_crate_wildfire.mdl",
+	"models/props/crates/csgo_drop_crate_vanguard.mdl",
+	"models/props/crates/csgo_drop_crate_spectrum2.mdl",
+	"models/props/crates/csgo_drop_crate_spectrum.mdl",
+	"models/props/crates/csgo_drop_crate_shadow.mdl",
+	"models/props/crates/csgo_drop_crate_revolver.mdl",
+	"models/props/crates/csgo_drop_crate_phoenix.mdl",
+	"models/props/crates/csgo_drop_crate_hydra.mdl",
+	"models/props/crates/csgo_drop_crate_huntsman.mdl",
+	"models/props/crates/csgo_drop_crate_horizon.mdl",
+	"models/props/crates/csgo_drop_crate_glove.mdl",
+	"models/props/crates/csgo_drop_crate_gamma2.mdl",
+	"models/props/crates/csgo_drop_crate_gamma.mdl",
+	"models/props/crates/csgo_drop_crate_dangerzone.mdl",
+	"models/props/crates/csgo_drop_crate_community_31.mdl",
+	"models/props/crates/csgo_drop_crate_community_30.mdl",
+	"models/props/crates/csgo_drop_crate_community_29.mdl",
+	"models/props/crates/csgo_drop_crate_community_28.mdl",
+	"models/props/crates/csgo_drop_crate_community_27.mdl",
+	"models/props/crates/csgo_drop_crate_community_26.mdl",
+	"models/props/crates/csgo_drop_crate_community_25.mdl",
+	"models/props/crates/csgo_drop_crate_community_24.mdl",
+	"models/props/crates/csgo_drop_crate_community_23.mdl",
+	"models/props/crates/csgo_drop_crate_community_22.mdl",
+	"models/props/crates/csgo_drop_crate_clutch.mdl",
+	"models/props/crates/csgo_drop_crate_chroma3.mdl",
+	"models/props/crates/csgo_drop_crate_chroma2.mdl",
+	"models/props/crates/csgo_drop_crate_chroma.mdl",
+	"models/props/crates/csgo_drop_crate_breakout.mdl",
+	"models/props/crates/csgo_drop_crate_bravo.mdl",
+	"models/props/crates/csgo_drop_crate_bloodhound.mdl",
+	"models/props/crates/csgo_drop_crate_armsdeal3.mdl",
+	"models/props/crates/csgo_drop_crate_armsdeal1.mdl",
+	"models/props/crates/csgo_drop_crate_armsdeal2.mdl"
+};
+
+char sDownloadPaths[][] =  
+{
+	"models/ktm/prop_crystal/crystal_cluster_small.mdl",
+	"models/props/xan13rus/items/diamond/diamond_icon.mdl",
+	"models/props/xan13rus/items/coins/gift_coins.mdl",
+	"models/ktm/prop_crystal/crystal_cluster_small.phy",
+	"models/props/xan13rus/items/diamond/diamond_icon.phy",
+	"models/props/xan13rus/items/coins/gift_coins.phy",
+	"materials/models/props/xan13rus/items/coins/coins.vmt",
+	"materials/ktm/prop_crystal/crystal_default_small_multi.vmt",
+	"materials/models/props/xan13rus/items/diamond/diamond_01.vmt",
+	"materials/models/props/xan13rus/items/diamond/diamond_02.vmt",
+	"materials/models/props/xan13rus/items/coins/coins.vtf",
+	"materials/models/props/xan13rus/items/coins/coins_exp.vtf",
+	"materials/ktm/prop_crystal/crystal_default_small_multi.vtf",
+	"materials/models/props/xan13rus/items/diamond/diamond_01.vtf",
+	"materials/models/props/xan13rus/items/diamond/diamond_02.vtf",
+	"models/ktm/prop_crystal/crystal_cluster_small.dx90.vtx",
+	"models/props/xan13rus/items/diamond/diamond_icon.dx80.vtx",
+	"models/props/xan13rus/items/diamond/diamond_icon.dx90.vtx",
+	"models/props/xan13rus/items/diamond/diamond_icon.sw.vtx",
+	"models/props/xan13rus/items/coins/gift_coins.dx80.vtx",
+	"models/props/xan13rus/items/coins/gift_coins.dx90.vtx",
+	"models/props/xan13rus/items/coins/gift_coins.sw.vtx",
+	"models/ktm/prop_crystal/crystal_cluster_small.vvd",
+	"models/props/xan13rus/items/diamond/diamond_icon.vvd",
+	"models/props/xan13rus/items/coins/gift_coins.vvd"
+};
+
+char sRewardMDL[][] = 
+{
+	"models/props/xan13rus/items/coins/gift_coins.mdl",
+	"models/props/xan13rus/items/diamond/diamond_icon.mdl",
+	"models/ktm/prop_crystal/crystal_cluster_small.mdl"
+};

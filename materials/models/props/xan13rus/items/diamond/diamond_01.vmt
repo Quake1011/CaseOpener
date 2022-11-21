@@ -1,0 +1,11 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/props/xan13rus/items/diamond/diamond_01"
+	"$phong" "1"
+	"$phongboost" "10"
+	"$phongalbedoboost" "10"
+    "$phongexponent" "90"
+	"$phongfresnelranges" "[.7 .7 1]"
+	"$phongalbedotint" "1"
+	"$phongdisablehalflambert" "5"
+}

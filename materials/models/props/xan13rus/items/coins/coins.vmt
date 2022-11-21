@@ -1,0 +1,11 @@
+"VertexlitGeneric"
+{
+	"$basetexture" "models/props/xan13rus/items/coins/coins"
+	"$bumpmap" "models/props/xan13rus/items/coins/coins_exp"
+	"$phong"   "1"
+	"$phongboost"   "10"
+	"$phongexponent"    "1"
+	"$phongfresnelranges" "[.7 .9 1]"
+	$phongalbedotint 1
+	"$nocull" "1"
+}

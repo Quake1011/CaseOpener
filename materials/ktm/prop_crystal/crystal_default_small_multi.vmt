@@ -1,0 +1,35 @@
+VertexLitGeneric
+{
+	$basetexture "ktm\prop_crystal/crystal_default_small_multi"
+	$surfaceprop Glass
+
+	$envmap "env_cubemap"
+	$envmapcontrast 1
+	$envmaplightscale 0.94
+	$envmaplightscaleminmax "[0.10 1.40]"
+
+	$phong 1
+	$basemapluminancephongmask 1
+	$phongfresnelranges "[0.44 0.72 1]"
+	$phongtint "[0.69 0.39 1]"
+	$phongdisablehalflambert 1
+	$phongexponent 5
+	$phongboost 1.82
+	$phongalbedoboost 1.69
+
+	$selfillum 1
+
+	$envcubemap 1
+	$model 1
+
+	Proxies
+	{
+		Sine
+		{
+			resultVar $selfIllumTint
+			sinemin 1
+			sinemax 2
+			sineperiod 2.50
+		}
+	}
+}
