@@ -247,10 +247,10 @@ public void OnPluginStart()
 			hArrayList.PushString(buffer);
 		} while(kv.GotoNextKey())
 		
-		RegCommandsFromKv("cmds_case", Command_Case, "Spawn case in view direction point");
-		RegCommandsFromKv("cmds_reset_me", CommandResetCounter, "Fast reset self counter");
-		RegCommandsFromKv("cmds_reset_all", CommandResetFor, "List of players for reset anybody counter");
-		RegCommandsFromKv("cmds_rating", CommandRatingMenu, "Menu of case rating");
+		RegCommandsFromKv("cmds_case", Command_Case, "Spawn case in view direction point", "sm_case");
+		RegCommandsFromKv("cmds_reset_me", CommandResetCounter, "Fast reset self counter", "sm_rc");
+		RegCommandsFromKv("cmds_reset_all", CommandResetFor, "List of players for reset anybody counter", "sm_ra");
+		RegCommandsFromKv("cmds_rating", CommandRatingMenu, "Menu of case rating", "sm_cstats");
 	}
 	
 	if(bDropLog == true)
@@ -1087,17 +1087,21 @@ public Action OnTouchDelete(Handle hNewTimer, int activator)
 //																							HELPERS																							//
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-void RegCommandsFromKv(const char[] key, ConCmd Callback, const char[] desc)
+void RegCommandsFromKv(const char[] key, ConCmd Callback, const char[] desc, const char[] defcmd)
 {
-	char keybuffer[2048], cmds[32][64];
-	kv.Rewind();
-	kv.GetString(key, keybuffer, sizeof(keybuffer));
-	ExplodeString(keybuffer, ";", cmds, sizeof(cmds), 64);
-	for(int i = 0; i < sizeof(cmds); i++) 
+	if(key[0] != NULL_STRING)
 	{
-		if(cmds[i][0] == '!') ReplaceString(cmds[i], sizeof(cmds), "!", "sm_", true);
-		RegConsoleCmd(cmds[i], Callback, desc);
+		char keybuffer[2048], cmds[32][64];
+		kv.Rewind();
+		kv.GetString(key, keybuffer, sizeof(keybuffer));
+		ExplodeString(keybuffer, ";", cmds, sizeof(cmds), 64);
+		for(int i = 0; i < sizeof(cmds); i++) 
+		{
+			if(cmds[i][0] == '!') ReplaceString(cmds[i], sizeof(cmds), "!", "sm_", true);
+			RegConsoleCmd(cmds[i], Callback, desc);
+		}		
 	}
+	else RegConsoleCmd(defcmd, Callback, desc);
 }
 
 void PrintToHintScrolling(int client) 
