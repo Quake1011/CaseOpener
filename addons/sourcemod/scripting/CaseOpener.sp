@@ -682,6 +682,7 @@ public void Get10Rating(Database db, DBResultSet results, const char[] error, an
 			else PrintToChat(data, "Rating is empty now");
 		}
 	}
+	else PrintError(error, 663);
 }
 
 public void UpdateSQLRateing(Database db, DBResultSet results, const char[] error, any data)
@@ -707,7 +708,7 @@ public void SQLResetCounterCB(Database db, DBResultSet result, const char[] erro
 			}
 		}
 	}
-	else PrintError(error);
+	else PrintError(error, 693);
 }
 
 public void SQLConnectGlobalDB(Database db, const char[] error, any data) 
@@ -748,7 +749,7 @@ public void SQLAddClientData(Database db, DBResultSet result, const char[] error
 			else LogMessage("[CASEOPENER] The player %N is already in the database", client);
 		}
 	}
-	else SetFailState("[CASEOPENER] Error adding player %N data", client);
+	else SetFailState("[CASEOPENER] Error adding player %N data: %s", client, error);
 }
 
 public void SQLResetedCounterCB(Database db, DBResultSet result, const char[] error, int client)
