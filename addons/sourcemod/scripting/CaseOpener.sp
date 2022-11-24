@@ -770,7 +770,7 @@ public void SQLResetedCounterCB(Database db, DBResultSet result, const char[] er
 			}
 		}
 	}
-	else PrintError(error);
+	else PrintError(error, 755);
 }
 
 public void SQLCreatingCaseQuery(Database db, DBResultSet result, const char[] error, int client)
@@ -854,7 +854,7 @@ public void SQLCreatingCaseQuery(Database db, DBResultSet result, const char[] e
 			}
 		}
 	}
-	else PrintError(error);
+	else PrintError(error, 776);
 }
 
 public void SQLTCheckStatusForTime(Database db, DBResultSet result, const char[] error, int client)
@@ -873,7 +873,7 @@ public void SQLTCheckStatusForTime(Database db, DBResultSet result, const char[]
 			}
 		}		
 	}
-	else PrintError(error);
+	else PrintError(error, 860);
 }
 
 public void SQLCheckTimeStatusCaseClient(Database db, DBResultSet result, const char[] error, int client)
@@ -896,7 +896,7 @@ public void SQLCheckTimeStatusCaseClient(Database db, DBResultSet result, const 
 			}
 		}
 	}
-	else PrintError(error);
+	else PrintError(error, 879);
 }
 
 public void SQLOnRewardSpawn(Database db, DBResultSet result, const char[] error, int client)
@@ -914,7 +914,7 @@ public void SQLOnRewardSpawn(Database db, DBResultSet result, const char[] error
 			}
 		}
 	}
-	else PrintError(error);
+	else PrintError(error, 902);
 }
 
 public void SQLSetUnavailableCase(Database db, DBResultSet result, const char[] error, int client)
@@ -932,7 +932,7 @@ public void SQLSetUnavailableCase(Database db, DBResultSet result, const char[] 
 			}
 		}
 	}
-	else PrintError(error);
+	else PrintError(error, 920);
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -1140,9 +1140,9 @@ void PrintToHintScrolling(int client)
 	}
 }
 
-void PrintError(const char[] error)
+void PrintError(const char[] error, int line)
 {
-	LogMessage("Query ERROR: %s", error);
+	LogMessage("Query ERROR on line [%i]: %s", line, error);
 }
 
 void NullClient(int client) 
