@@ -1,75 +1,88 @@
-# A simple version of opening cases
-***The plugin is a case model spawner that starts a timer before creating an entity simulating a reward. As a reward, you can set VIP groups, a random number of credits and experience.***
-[^1]: It is a standalone plugin, on the basis of which I am currently writing a private(maybe public) CORE equal to WSGK.
+# CaseOpener
 
-## Requirements
- - [CSGO Colors](https://hlmod.ru/threads/inc-cs-go-colors.46870/)
- - [Levels Ranks](https://github.com/levelsranks/levels-ranks-core/tree/3.1.7B2) (optional)
- - [Shop](https://github.com/hlmod/Shop-Core)
- - [VIP Core](https://github.com/R1KO/VIP-Core/releases) (optional)
- - [FPS](https://github.com/OkyHp/Fire-Players-Stats) (optional)
- - *>=* SM 1.10
- - MYSQL | SQLITE
+Плагин кейсов для CS:GO на SourceMod. Поддерживает старую команду из
+`Opener.ini` и новые ежедневные, еженедельные и пользовательские типы кейсов.
 
-## Setup
-1) Move all files according to the current directories. 
-2) Add **"case_opener"** section in configuration file **addons/sourcemod/configs/database.cfg**:
-```
+## Совместимость
+
+- SourceMod 1.10, 1.11, 1.12 и 1.13.
+- SourcePawn-код использует API, доступные начиная с SM 1.10.
+- Требуется Shop-Core.
+- VIP Core, Levels Ranks и FirePlayersStats подключаются опционально.
+- Нельзя одновременно компилировать с `lvl_ranks.inc` и `FirePlayersStats.inc`.
+- База данных: MySQL или SQLite.
+
+Плагин проверен локально компиляторами SM 1.10 и 1.11 в вариантах без
+опциональных модулей, с VIP Core, с Levels Ranks, с FirePlayersStats и с VIP
+Core + одним из статистических модулей. Релизы SM 1.12/1.13 сохраняют этот
+совместимый API; для финальной сборки используйте `spcomp` той версии, которая
+установлена на сервере.
+
+## Установка
+
+1. Скопируйте содержимое `addons/` в каталог игры.
+2. Добавьте секцию `case_opener` в `addons/sourcemod/configs/databases.cfg`:
+
+```text
 "case_opener"
 {
-  "driver"      "mysql"
-  "host"	"255.255.255.255"
-  "database"	"dbname"
-  "user"	"dbuser"
-  "pass"	"password"
+    "driver"   "sqlite"
+    "database" "case_opener"
 }
 ```
-3) To configure **CaseOpener.cfg** for yourself in the source code before compilation or after file generation
-4) To configure **Opener.ini** if you need 
-5) Depends by the statistics plugin on the server - delete the **lvl_ranks.inc** or **FirePlayersStats.inc** library from the **addons/sourcemod/scripting/include** folder. If dont use these plugins for statistics you should delete both libraries
-6) Compile **Case Opener.sp** and move it to the **plugins** folder.
-7) Restart a server
-## Commands 
-- Setts in **Opener.ini**
-## ConVars
-The plugin has auto-generation of a configuration file as **CaseOpener.cfg** located on the path **cfg/sourcemod/** containing ConVars:
-- **sm_opener_time_give_vip** - Time of VIP in seconds. 0 - forever.	**Default: 604700**
-- **sm_opener_min_exp** - Minimum number of received experience.	**Default: 400**
-- **sm_opener_max_exp** - Maximum number of received experience.	**Default: 1000**
-- **sm_opener_time_before_next_open** - Time between case openings in seconds.	**Default: 604800**
-- **sm_opener_open_anim_speed** - The animation speed of the case. It is configured together with sm_opener_open_speed.	**Default: 0.1**
-- **sm_opener_open_speed** - Case opening speed. It is configured together with sm_opener_open_anim_speed.	**Default: 11.5**
-- **sm_opener_open_speed_scroll** - Scroll speed.	**Default: 0.25**
-- **sm_opener_min_credits** - Minimum number of credits received.	**Default: 500**
-- **sm_opener_max_credits** - Maximum number of credits received.	**Default: 2500**
-- **sm_opener_max_position_value** - The maximum distance to case spawn. Depends by sm_opener_max_position.	**Default: 3**
-- **sm_opener_case_kill_time** - The time after which the case will disappear in seconds.	**Default: 3**
-- **sm_opener_same_plat** - Spawn the case on the same plane with the owner.	**1 - Yes | 0 - No.**
-- **sm_opener_kill_case_sound** - Turn on the sound of the case disappearing.	**1 - Yes | 0 - No.**
-- **sm_opener_case_opening_sound** - Enable case opening sounds.	**1 - Yes | 0 - No.**
-- **sm_opener_case_messages** - Enable chat messages.	**1 - Yes | 0 - No.**
-- **sm_opener_case_messages_hint** - Enable messages in the hint.	**1 - Yes | 0 - No.**
-- **sm_opener_case_access** - Access only for admins.	**1 - Yes | 0 - No.**
-- **sm_opener_max_position** - Limit the spawn distance.	**1 - Yes | 0 - No.**
-- **sm_opener_open_output_beam** - Display the maximum spawn radius.	**1 - Yes | 0 - No.**
-- **sm_opener_give_vip** - Drop a VIP group.	**1 - Yes | 0 - No.**
-- **sm_opener_give_exp** - Drop a experience.	**1 - Yes | 0 - No.**
-- **sm_opener_reset_counter** - Allow admins to reset the counter.	**1 - Yes | 0 - No.**
-- **sm_opener_log** - Enable logging case drops.	**1 - Yes | 0 - No.**
-- **sm_opener_print_all** - Print for all when player items drops.	**1 - Yes | 0 - No.**
-- **sm_opener_no_boom** - Disable the explosion when removing the case.	**1 - Yes | 0 - No.**
-- **sm_opener_start_counter** - To start counter.	**1 - after touch | 0 - after open.**
 
-**mark**: To drop out the necessary VIP groups - configure the Opener.ini with the specifying of the desired groups and chances
+3. Для MySQL замените параметры `driver`, `host`, `database`, `user` и `pass`.
+4. Установите `CaseOpener.smx` в `addons/sourcemod/plugins/`.
+5. Проверьте `cfg/sourcemod/CaseOpener.cfg`, который создаётся автоматически.
 
-## IMPORTANT 
-- If you are has lags by types a command !case - set the plugin on SQLite connection or change MYSQL server
-- Delete the database when switching to version 1.4.0+ if you used the plugin version below earlier
+Если база временно недоступна, плагин не выгружается: функции, требующие
+сохранения прогресса, сообщают об ошибке и записывают причину в лог.
 
-## Thanks
-- [ScriptKiddie](https://hlmod.ru/members/scriptkiddie.152745/) (tests & ideas)
+## Типы кейсов и награды
 
-## About possible problems, please let me know: 
-- Quake#2601 - DISCORD
-- [HLMOD](https://hlmod.ru/members/palonez.92448/)
-- [STEAM](https://steamcommunity.com/id/comecamecame/)
+Настройки находятся в `addons/sourcemod/configs/CaseOpenerCases.ini`.
+
+- `daily` — ежедневный кейс с cooldown 86400 секунд.
+- `weekly` — еженедельный кейс с cooldown 604800 секунд.
+- Можно добавить до 8 типов с собственным `name`, `model` и cooldown.
+- `*_chance` — относительные веса выпадения наград.
+- `streak_required` и `streak_bonus_percent` задают бонус серии.
+- `shop_category`/`shop_item` выдают предмет Shop-Core.
+- `vip_group`/`vip_time` выдают временный VIP.
+- `xp_multiplier` увеличивает XP-награду при выпадении соответствующего типа.
+- `extra_cases` добавляет дополнительные открытия без изменения основного cooldown.
+
+Старая конфигурация VIP и алиасы команд остаются в `Opener.ini`.
+
+## Команды игроков
+
+- `!dailycase` — открыть ежедневный кейс.
+- `!weeklycase` — открыть еженедельный кейс.
+- `!case_open <id>` — открыть тип из `CaseOpenerCases.ini`.
+- `!case_menu` или `!case_info` — меню кейсов, cooldown, шансы и награды.
+- Старые команды `!case`, `!drop`, `!reward` и команды из `Opener.ini` сохраняются.
+
+## Команды администратора
+
+Требуется `ADMFLAG_ROOT`:
+
+- `sm_case_give <target> <case> [count]` — выдать дополнительные открытия.
+- `sm_case_take <target> <case> [count]` — отозвать дополнительные открытия.
+- `sm_case_stats [target]` — показать streak, cooldown, дополнительные кейсы и число открытий.
+- `sm_case_export <json|csv>` — экспортировать статистику в `addons/sourcemod/data/CaseOpener/`.
+
+Экспортный JSON/CSV можно использовать внешней панелью без прямого доступа к
+базе данных.
+
+## Эксплуатация
+
+Основные ConVar:
+
+- `sm_opener_sounds` — звуки.
+- `sm_opener_effects` — визуальные эффекты и beam.
+- `sm_opener_notifications` — сообщения чата и hint.
+- `sm_opener_log` — логирование выпадений и отказов.
+
+Имя игрока обновляется в базе при каждом подключении. Переводы находятся в
+`addons/sourcemod/translations/CaseOpener.phrases.txt` и включают RU/EN для
+новых уведомлений.

@@ -38,6 +38,7 @@
 ArrayList aRating[2];
 
 Database gDatabase;
+bool gDatabaseReady;
 KeyValues kv;
 Handle hTimers[MAXPLAYERS+1][6];
 
@@ -76,6 +77,11 @@ bool
 	bDropLog,
 	bStartCounter;
 
+bool
+	bSoundsEnabled,
+	bEffectsEnabled,
+	bNotificationsEnabled;
+
 ConVar 
 	g_hEnableBoom,
 	g_hOutputBeam,
@@ -99,11 +105,16 @@ ConVar
 	g_hResetCounter,
 	g_hStartCounter;
 
+ConVar
+	g_hSoundsEnabled,
+	g_hEffectsEnabled,
+	g_hNotificationsEnabled;
+
 char sQuery[256], auth[22];
 
 #include "CaseOpener/files.sp"
 
-static char sLog[PLATFORM_MAX_PATH];
+char sLog[PLATFORM_MAX_PATH];
 
 static const char sColor[][] = {"FF0000", "00FF00"};
 
@@ -132,16 +143,16 @@ public Plugin myinfo =
 	name = "Case Opener",
 	author = "Quake1011",
 	description = "Spawning case with reward",
-	version = "1.5.0",
+	version = "1.6.0",
 	url = "https://github.com/Quake1011/"
 }
 
 public void OnPluginStart() 
 {
-	if(!SQL_CheckConfig("case_opener")) 
-		SetFailState("[CASEOPENER] Section \"case_opener\" is not found in databases.cfg");
-
-	Database.Connect(SQLConnectGlobalDB, "case_opener");
+	if(SQL_CheckConfig("case_opener"))
+		Database.Connect(SQLConnectGlobalDB, "case_opener");
+	else
+		LogError("[CASEOPENER] Section \"case_opener\" is not found in databases.cfg; database features are disabled");
 
 	HookEvent("round_start", EventRoundStart, EventHookMode_Post);
 	
@@ -226,6 +237,15 @@ public void OnPluginStart()
 
 	HookConVarChange((g_hStartCounter = CreateConVar("sm_opener_start_counter","1","To start counter [1 - after touch, 0 - after open]",0, true, 0.0, true, 1.0)), OnConvarChanged);
 	bStartCounter = g_hStartCounter.BoolValue;
+
+	HookConVarChange((g_hSoundsEnabled = CreateConVar("sm_opener_sounds", "1", "Enable CaseOpener sounds", 0, true, 0.0, true, 1.0)), OnConvarChanged);
+	bSoundsEnabled = g_hSoundsEnabled.BoolValue;
+
+	HookConVarChange((g_hEffectsEnabled = CreateConVar("sm_opener_effects", "1", "Enable CaseOpener visual effects", 0, true, 0.0, true, 1.0)), OnConvarChanged);
+	bEffectsEnabled = g_hEffectsEnabled.BoolValue;
+
+	HookConVarChange((g_hNotificationsEnabled = CreateConVar("sm_opener_notifications", "1", "Enable CaseOpener chat and hint notifications", 0, true, 0.0, true, 1.0)), OnConvarChanged);
+	bNotificationsEnabled = g_hNotificationsEnabled.BoolValue;
 	
 	AutoExecConfig(true, "CaseOpener");
 	
@@ -259,6 +279,7 @@ public void OnPluginStart()
 	RegCommandsFromKv("cmds_reset_me", CommandResetCounter, "Fast reset self counter", "sm_rc");
 	RegCommandsFromKv("cmds_reset_all", CommandResetFor, "List of players for reset anybody counter", "sm_ra");
 	RegCommandsFromKv("cmds_rating", CommandRatingMenu, "Menu of case rating", "sm_cstats");
+	Feature_Init();
 	
 	BuildPath(Path_SM, sLog, sizeof(sLog), "logs/CaseOpener.log");
 	if(bDropLog)
@@ -301,6 +322,9 @@ public void OnConvarChanged(ConVar convar, const char[] oldValue, const char[] n
 	else if(convar == g_hPrintAll) bPrintAll = convar.BoolValue;
 	else if(convar == g_hEnableBoom) bEnableBoom = !convar.BoolValue;
 	else if(convar == g_hStartCounter) bStartCounter = convar.BoolValue;
+	else if(convar == g_hSoundsEnabled) bSoundsEnabled = convar.BoolValue;
+	else if(convar == g_hEffectsEnabled) bEffectsEnabled = convar.BoolValue;
+	else if(convar == g_hNotificationsEnabled) bNotificationsEnabled = convar.BoolValue;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
@@ -314,7 +338,14 @@ public Action Command_Case(int client, int args)
 
 	if(IsPlayerAlive(client)) 
 	{
-		if(gDatabase == null || bCaseRequestPending[client])
+		if(!gDatabaseReady || gDatabase == null)
+		{
+			Feature_Refusal(client, -1, "database_unavailable");
+			if(bNotificationsEnabled && bCaseMessages)
+				CGOPrintToChat(client, "%t%t", "prefix", "feature_database_unavailable");
+			return Plugin_Handled;
+		}
+		if(bCaseRequestPending[client])
 			return Plugin_Handled;
 
 		if(!GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth)))
@@ -326,7 +357,7 @@ public Action Command_Case(int client, int args)
 	}
 	else 
 	{
-		if(bCaseMessages) 
+		if(bNotificationsEnabled && bCaseMessages) 
 			CGOPrintToChat(client, "%t%t", "prefix", "be_alive");
 			
 		EmitSoundToClient(client, "buttons/blip1.wav", SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, NULL_VECTOR);
@@ -352,7 +383,7 @@ public Action CommandResetCounter(int client, int args)
 	}
 	else 
 	{
-		if(bCaseMessages) 
+		if(bNotificationsEnabled && bCaseMessages) 
 			CGOPrintToChat(client, "%t%t", "prefix", "not_works");
 			
 		EmitSoundToClient(client, "buttons/blip1.wav", SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, NULL_VECTOR);
@@ -388,7 +419,7 @@ public Action CommandResetFor(int client, int args)
 	}
 	else 
 	{
-		if(bCaseMessages) 
+		if(bNotificationsEnabled && bCaseMessages) 
 			CGOPrintToChat(client, "%t%t", "prefix", "not_works");
 		EmitSoundToClient(client, "buttons/blip1.wav", SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, NULL_VECTOR);
 	}
@@ -505,6 +536,7 @@ public int SelectPlayer(Menu menu, MenuAction action, int client, int item)
 
 public void OnClientDisconnect(int client) 
 {
+	Feature_OnClientDisconnect(client);
 	NullClient(client);
 }
 
@@ -514,6 +546,7 @@ public void OnClientPostAdminCheck(int client)
 	{
 		NullClient(client);
 		AddDataToDB(client);
+		Feature_OnClientConnected(client);
 	}
 }
 
@@ -523,6 +556,7 @@ public void OnMapStart()
 		AddFileToDownloadsTable(sDownloadPaths[i]);	
 	
 	PreCacheFiles();
+	Feature_OnMapStart();
 }
 
 public void OnMapEnd()
@@ -548,6 +582,12 @@ public Action Hook_ModelStartTouch(int iEntity, int activator)
 		if(iEntCaseData[activator][1] == iEntity && iEntity > MaxClients && IsValidEntity(iEntity) && !bRewardClaimed[activator])
 		{
 			bRewardClaimed[activator] = true;
+			if(Feature_IsActive(activator))
+			{
+				Feature_HandleRewardTouch(activator);
+				return Plugin_Continue;
+			}
+
 			char sTime[32];
 			FormatTime(sTime, sizeof(sTime), "%X", GetTime());
 			switch(iReward[activator]) 
@@ -556,7 +596,7 @@ public Action Hook_ModelStartTouch(int iEntity, int activator)
 				{
 					Shop_GiveClientCredits(activator, iEntCaseData[activator][4], CREDITS_BY_NATIVE);
 					UpdateRating(crd, activator, iEntCaseData[activator][4]);
-					if(bCaseMessages)
+					if(bNotificationsEnabled && bCaseMessages)
 					{
 						if(bPrintAll) 
 							CGOPrintToChatAll("%t%t", "prefix", "received_credits_all", activator, iEntCaseData[activator][4]);
@@ -579,7 +619,7 @@ public Action Hook_ModelStartTouch(int iEntity, int activator)
 	#endif
 						UpdateRating(exp, activator, iEntCaseData[activator][4]);
 						
-						if(bCaseMessages) 
+						if(bNotificationsEnabled && bCaseMessages) 
 						{
 							if(bPrintAll) 
 								CGOPrintToChatAll("%t%t", "prefix", "received_exp_all", activator, iEntCaseData[activator][4]);
@@ -594,7 +634,7 @@ public Action Hook_ModelStartTouch(int iEntity, int activator)
 					{
 						Shop_GiveClientCredits(activator, iEntCaseData[activator][4], CREDITS_BY_NATIVE);
 						UpdateRating(crd, activator, iEntCaseData[activator][4]);
-						if(bCaseMessages) 
+						if(bNotificationsEnabled && bCaseMessages) 
 						{
 							if(bPrintAll) 
 								CGOPrintToChatAll("%t%t", "prefix", "received_credits_all", activator, iEntCaseData[activator][4]);
@@ -620,7 +660,7 @@ public Action Hook_ModelStartTouch(int iEntity, int activator)
 							kv.JumpToKey(buffer);
 							VIP_GiveClientVIP(0, activator, kv.GetNum("time"), buffer, true);
 							UpdateRating(vip, activator, 0);
-							if(bCaseMessages) 
+							if(bNotificationsEnabled && bCaseMessages) 
 							{
 								if(bPrintAll) 
 								{
@@ -636,7 +676,7 @@ public Action Hook_ModelStartTouch(int iEntity, int activator)
 						}
 						else 
 						{
-							if(bCaseMessages) 
+							if(bNotificationsEnabled && bCaseMessages) 
 							{
 								if(bPrintAll) 
 									CGOPrintToChatAll("%t%t", "prefix", "nothing", activator);
@@ -650,7 +690,7 @@ public Action Hook_ModelStartTouch(int iEntity, int activator)
 					{
 						Shop_GiveClientCredits(activator, iEntCaseData[activator][4], CREDITS_BY_NATIVE);
 						UpdateRating(crd, activator, iEntCaseData[activator][4]);
-						if(bCaseMessages)
+						if(bNotificationsEnabled && bCaseMessages)
 						{
 							if(bPrintAll) 
 								CGOPrintToChatAll("%t%t", "prefix", "received_credits_all", activator, iEntCaseData[activator][4]);
@@ -748,7 +788,7 @@ public void SQLResetCounterCB(Database db, DBResultSet result, const char[] erro
 			SQL_FormatQuery(gDatabase, sQuery, sizeof(sQuery), "UPDATE `opener_base` SET `available`='1', `last_open`='0' WHERE `steam`='%s'", auth);
 			SQL_FastQuery(gDatabase, sQuery);
 			
-			if(bCaseMessages) 
+			if(bNotificationsEnabled && bCaseMessages) 
 				CGOPrintToChat(client, "%t%t", "prefix", "counter_reseted");
 		}
 	}
@@ -759,11 +799,19 @@ public void SQLResetCounterCB(Database db, DBResultSet result, const char[] erro
 public void SQLConnectGlobalDB(Database db, const char[] error, any data) 
 {
 	if(!db || error[0]) 
-		SetFailState("[CASEOPENER] Problem with connection to Database");
+	{
+		gDatabaseReady = false;
+		LogError("[CASEOPENER] Problem with connection to Database: %s; database features are disabled", error);
+		return;
+	}
 
 	LogMessage("Connection is READY!");
 	gDatabase = db;
+	gDatabaseReady = true;
 	CreateTableDB();
+	for(int i = 1; i <= MaxClients; i++)
+		if(IsValidHumanClient(i))
+			Feature_OnClientConnected(i);
 }
 
 public void SQLTQueryCallBack(Handle owner, Handle hndl, const char[] error, any data) 
@@ -772,8 +820,8 @@ public void SQLTQueryCallBack(Handle owner, Handle hndl, const char[] error, any
 		LogMessage("[CASEOPENER] The table has been created");
 	else 
 	{
-		SetFailState("[CASEOPENER] Cant create a table \"opener_base\": %s", error);
-		LogError(error);
+		LogError("[CASEOPENER] Cant create a table \"opener_base\": %s; database features are disabled", error);
+		gDatabaseReady = false;
 	}
 }
 
@@ -823,7 +871,7 @@ public void SQLResetedCounterCB(Database db, DBResultSet result, const char[] er
 			SQL_FormatQuery(gDatabase, sQuery, sizeof(sQuery), "UPDATE `opener_base` SET `available`='1', `last_open`='0' WHERE `steam`='%s'", auth);
 			SQL_FastQuery(gDatabase, sQuery);
 			
-			if(bCaseMessages) 
+			if(bNotificationsEnabled && bCaseMessages) 
 				CGOPrintToChat(client, "%t%t", "prefix", "counter_reseted");
 		}
 	}
@@ -850,7 +898,7 @@ public void SQLCreatingCaseQuery(Database db, DBResultSet result, const char[] e
 	int remaining = (lastOpen + iTimeBeforeNextOpen) - GetTime();
 	if(!available && remaining > 0)
 	{
-		if(bCaseMessages)
+		if(bNotificationsEnabled && bCaseMessages)
 			CGOPrintToChat(client, "%t%t", "prefix", "wait_next_case", remaining / 3600 / 24, remaining / 3600 % 24, remaining / 60 % 60, remaining % 60);
 		EmitSoundToClient(client, "buttons/blip1.wav", SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, NULL_VECTOR);
 		return;
@@ -866,7 +914,7 @@ public void SQLCreatingCaseQuery(Database db, DBResultSet result, const char[] e
 
 	if(iEntCaseData[client][0] != -1 || iEntCaseData[client][1] != -1 || iEntCaseData[client][2] != -1 || iEntCaseData[client][3] != -1 || iEntCaseData[client][4] != -1)
 	{
-		if(bCaseMessages)
+		if(bNotificationsEnabled && bCaseMessages)
 			CGOPrintToChat(client, "%t%t", "prefix", "existing_case");
 		EmitSoundToClient(client, "buttons/blip1.wav", SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, NULL_VECTOR);
 		return;
@@ -874,7 +922,7 @@ public void SQLCreatingCaseQuery(Database db, DBResultSet result, const char[] e
 
 	if(bCaseAccess && GetUserAdmin(client) == INVALID_ADMIN_ID)
 	{
-		if(bCaseMessages)
+		if(bNotificationsEnabled && bCaseMessages)
 			CGOPrintToChat(client, "%t%t", "prefix", "not_admin");
 		EmitSoundToClient(client, "buttons/blip1.wav", SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, NULL_VECTOR);
 		return;
@@ -897,16 +945,16 @@ public void SQLCreatingCaseQuery(Database db, DBResultSet result, const char[] e
 
 	if(bSamePlat && FloatAbs(fEndOfTrace[z] - fClientOrigin[z]) >= 5.0)
 	{
-		if(bCaseMessages)
+		if(bNotificationsEnabled && bCaseMessages)
 			CGOPrintToChat(client, "%t%t", "prefix", "same_level_case");
 		return;
 	}
 
 	if(bMaxPosition && GetVectorDistance(fClientOrigin, fEndOfTrace) > float(iMaxPositionValue * 100))
 	{
-		if(bCaseMessages)
+		if(bNotificationsEnabled && bCaseMessages)
 			CGOPrintToChat(client, "%t%t", "prefix", "too_longer", iMaxPositionValue);
-		if(bOutputBeam)
+		if(bEffectsEnabled && bOutputBeam)
 		{
 			float fDist = float(iMaxPositionValue * 100);
 			TE_SetupBeamRingPoint(fClientOrigin, 0.0, fDist * 2, g_BeamSprite, g_HaloSprite, 0, 660, 1.0, 2.0, 0.0, {255, 255, 0, 255}, 1000, 0);
@@ -1057,14 +1105,19 @@ public Action Scrolling(Handle hNewTimer, int client)
 
 	GetEntPropVector(iEntCaseData[client][0], Prop_Data, "m_vecAbsOrigin", fPos);
 
-	if(bCaseOpeningSound) 
+	if(bSoundsEnabled && bCaseOpeningSound) 
 		EmitSoundToAll("ui/csgo_ui_crate_item_scroll.wav", iEntCaseData[client][0], SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, fPos);
 
 	SetVariantColor(clr);
 	AcceptEntityInput(iEntCaseData[client][3], "color");
 
-	if(bCaseMessagesHint) 
-		PrintToHintScrolling(client);
+	if(bNotificationsEnabled && bCaseMessagesHint)
+	{
+		if(Feature_IsActive(client))
+			Feature_PrintScrollingHint(client);
+		else
+			PrintToHintScrolling(client);
+	}
 
 	return Plugin_Continue;
 }
@@ -1090,8 +1143,14 @@ public Action SoundOpen(Handle hNewTimer, int client)
 
 	float fPos[3];
 	GetEntPropVector(iEntCaseData[client][0], Prop_Data, "m_vecAbsOrigin", fPos);
-	if(bCaseOpeningSound) 
+	if(bSoundsEnabled && bCaseOpeningSound) 
 		EmitSoundToAll("ui/csgo_ui_crate_display.wav", iEntCaseData[client][0], SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, fPos);
+
+	if(Feature_IsActive(client))
+	{
+		Feature_PrintRewardHint(client);
+		return Plugin_Continue;
+	}
 		
 	switch(iReward[client]) 
 	{
@@ -1100,7 +1159,7 @@ public Action SoundOpen(Handle hNewTimer, int client)
 			if(iEntCaseData[client][4] == -1)
 				iEntCaseData[client][4] = GetSafeRandomInt(iMinCredits, iMaxCredits);
 				
-			if(bCaseMessagesHint) 
+			if(bNotificationsEnabled && bCaseMessagesHint) 
 				PrintHintText(client, "%t", "credits_scroll", sColor[1], iEntCaseData[client][4]);
 		}
 #if (defined _levelsranks_included_ || defined _fire_players_stats_included)
@@ -1109,32 +1168,32 @@ public Action SoundOpen(Handle hNewTimer, int client)
 			if(iEntCaseData[client][4] == -1)
 				iEntCaseData[client][4] = GetSafeRandomInt(iMinExp, iMaxExp);
 				
-			if(bGiveExp) if(bCaseMessagesHint) 
+			if(bGiveExp) if(bNotificationsEnabled && bCaseMessagesHint) 
 				PrintHintText(client, "%t", "exp_scroll", sColor[1], iEntCaseData[client][4]);
-			else if(bCaseMessagesHint) 
+			else if(bNotificationsEnabled && bCaseMessagesHint) 
 				PrintHintText(client, "%t", "credits_scroll", sColor[1], iEntCaseData[client][4]);
 		}
 #endif
 #if defined _vip_core_included
-		case 2:
+		case 2: 
 		{
 			char buffer[64];
 			if(SelectVipGroup(iEntCaseData[client][4]))
 			{
 				hArrayList.GetString(iEntCaseData[client][4], buffer, sizeof(buffer));
-				if(bCaseMessagesHint)
+				if(bNotificationsEnabled && bCaseMessagesHint)
 					PrintHintText(client, "%t", "vip_scroll", sColor[1], buffer);
 				}
 			else 
 			{
 				iReward[client] = 0;
 				iEntCaseData[client][4] = GetSafeRandomInt(iMinCredits, iMaxCredits);
-				if(bCaseMessagesHint) 
+				if(bNotificationsEnabled && bCaseMessagesHint) 
 					PrintHintText(client, "%t", "credits_scroll", sColor[1], iEntCaseData[client][4]);
 			}
 		}
 #endif
-	}
+		}
 	return Plugin_Continue;
 }
 
@@ -1152,7 +1211,9 @@ public Action SpawnReward(Handle hNewTimer, int client)
 	DispatchSpawn(iEntCaseData[client][1]);
 	if(!bStartCounter)
 	{
-		if(gDatabase != null && GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth)))
+		if(Feature_IsActive(client))
+			Feature_ReserveCase(client);
+		else if(gDatabaseReady && gDatabase != null && GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth)))
 		{
 			SQL_FormatQuery(gDatabase, sQuery, sizeof(sQuery), "UPDATE `opener_base` SET `available`='0', `last_open`='%i' WHERE `steam`='%s'", GetTime(), auth);
 			SQL_FastQuery(gDatabase, sQuery);
@@ -1174,10 +1235,10 @@ public Action OnTouchDelete(Handle hNewTimer, int activator)
 	bool bCaseValid = IsValidEntity(iEntCaseData[activator][0]);
 	if(bCaseValid)
 		GetEntPropVector(iEntCaseData[activator][0], Prop_Data, "m_vecAbsOrigin", fPos);
-	if(bCaseValid && bKillCaseSound) 
+	if(bCaseValid && bSoundsEnabled && bKillCaseSound) 
 		EmitSoundToAll("weapons/hegrenade/explode3.wav", iEntCaseData[activator][0], SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, fPos);
 
-	if(bCaseValid && bEnableBoom)
+	if(bCaseValid && bEffectsEnabled && bEnableBoom)
 	{
 		TE_SetupExplosion(fPos, iExplode, 10.0, 1, 0, 275, 160);
 		TE_SendToAll();
@@ -1283,6 +1344,7 @@ void ResetClientState(int client)
 	bWarn[client] = false;
 	bCaseRequestPending[client] = false;
 	bRewardClaimed[client] = false;
+	Feature_ResetClient(client);
 }
 
 void KillCaseEntities(int client)
@@ -1417,10 +1479,13 @@ void SpawningReward(float fPos[3], int client)
 	AcceptEntityInput(iEntCaseData[client][0], "SetAnimation", -1, -1, -1);
 	DispatchKeyValueFloat(iEntCaseData[client][0], "playbackrate", fOpenSpeedAnim); 
 	
-	iReward[client] = SelectRewardType();
+	if(Feature_IsActive(client))
+		Feature_PrepareReward(client);
+	else
+		iReward[client] = SelectRewardType();
 	int R; // Не знаю под чем я это писал :/
 #if defined _vip_core_included
-	if(iReward[client] == 2 && (hArrayList == null || hArrayList.Length <= 0))
+	if(!Feature_IsActive(client) && iReward[client] == 2 && (hArrayList == null || hArrayList.Length <= 0))
 		iReward[client] = 0;
 #endif
 	R = iReward[client];
@@ -1456,14 +1521,16 @@ void SpawningReward(float fPos[3], int client)
 			}
 #endif
 #if defined _vip_core_included
-			case 2: 
-			{
+		case 2: 
+		{
 				if(bGiveVIP) 
 					DispatchKeyValue(iEntCaseData[client][1], "model", sRewardMDL[iReward[client]]);				
 				else 
 					DispatchKeyValue(iEntCaseData[client][1], "model", sRewardMDL[0]);
-			}
+		}
 #endif
+		default:
+			DispatchKeyValue(iEntCaseData[client][1], "model", sRewardMDL[0]);
 		}
 		SetVariantString(sTargetName);
 
@@ -1526,8 +1593,8 @@ void SpawningReward(float fPos[3], int client)
 		hTimers[client][2] = CreateTimer(fOpenSpeedScroll, Scrolling, GetClientUserId(client), TIMER_REPEAT);
 		hTimers[client][0] = CreateTimer(fOpenSpeed, SpawnReward, GetClientUserId(client));
 		hTimers[client][1] = CreateTimer(fOpenSpeed, SoundOpen, GetClientUserId(client));
+		}
 	}
-}
 
 void AddDataToDB(int client) 
 {
@@ -1539,7 +1606,7 @@ void AddDataToDB(int client)
 	gDatabase.Query(SQLAddClientData, sQuery, GetClientUserId(client), DBPrio_High);
 }
 
-float[] SpawnCase(int iClient, float fPos[3], float fAng[3]) 
+float[] SpawnCase(int iClient, float fPos[3], float fAng[3], int caseIndex = -1) 
 {
 	char sTargetName[64];
 
@@ -1556,7 +1623,11 @@ float[] SpawnCase(int iClient, float fPos[3], float fAng[3])
 	Format(sTargetName, sizeof(sTargetName), "case_%i", iClient);
 	DispatchKeyValue(iEntCaseData[iClient][0], "targetname", sTargetName);
 
-	DispatchKeyValue(iEntCaseData[iClient][0], "model", sCrates[GetRandomInt(0, sizeof(sCrates)-1)]);
+	char caseModel[PLATFORM_MAX_PATH];
+	if(caseIndex >= 0 && Feature_GetModel(caseIndex, caseModel, sizeof(caseModel)) && caseModel[0] != '\0')
+		DispatchKeyValue(iEntCaseData[iClient][0], "model", caseModel);
+	else
+		DispatchKeyValue(iEntCaseData[iClient][0], "model", sCrates[GetRandomInt(0, sizeof(sCrates)-1)]);
 	DispatchKeyValueVector(iEntCaseData[iClient][0], "origin", fPos);
 	DispatchKeyValueVector(iEntCaseData[iClient][0], "angles", fAng);
 
@@ -1565,7 +1636,8 @@ float[] SpawnCase(int iClient, float fPos[3], float fAng[3])
 	SetVariantString("fall");
 	AcceptEntityInput(iEntCaseData[iClient][0], "SetAnimation", -1, -1, -1);
 	DispatchKeyValueFloat(iEntCaseData[iClient][0], "playbackrate", 1.1);
-	EmitSoundToAll("ui/panorama/case_drop_01.wav", iEntCaseData[iClient][0], SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, fPos);
+	if(bSoundsEnabled)
+		EmitSoundToAll("ui/panorama/case_drop_01.wav", iEntCaseData[iClient][0], SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, SNDVOL_NORMAL, SNDPITCH_NORMAL, -1, fPos);
 	
 	fPos[z] += 20.0;
 	
@@ -1579,6 +1651,9 @@ bool TRFilter(int client, int mask)
 
 void CreateTableDB() 
 {
+	if(!gDatabaseReady || gDatabase == null)
+		return;
+
 	char Query[512];
 	SQL_FormatQuery(gDatabase, Query, sizeof(Query), "CREATE TABLE IF NOT EXISTS `opener_base` (\
 														`steam` VARCHAR(24) NOT NULL PRIMARY KEY, \
@@ -1590,6 +1665,7 @@ void CreateTableDB()
 														`exp_total` INTEGER(20) NOT NULL, \
 														`credits_total` INTEGER(20) NOT NULL)");
 	SQL_TQuery(gDatabase, SQLTQueryCallBack, Query);
+	Feature_CreateTableDB();
 }
 
 void PreCacheFiles() 
@@ -1610,6 +1686,7 @@ void PreCacheFiles()
 	PrecacheSound("ui/panorama/case_drop_01.wav", true);
 	PrecacheSound("buttons/blip1.wav", true);
 	PrecacheSound("ui/panorama/music_equip_01.wav", true);
+	Feature_PrecacheModels();
 }
 
 void UpdateRating(int type, int client, int value)
@@ -1708,3 +1785,5 @@ void GetRatingNow(int filter, int client)
 		
 	gDatabase.Query(Get10Rating, sQuery, GetClientUserId(client));
 }
+
+#include "CaseOpener/features.sp"

@@ -185,4 +185,92 @@
 		"ru"	    "Выход"
 		"en"	    "Exit"
     }
+
+	"feature_database_unavailable"
+	{
+		"ru"        "База данных временно недоступна. Попробуйте позже."
+		"en"        "The database is temporarily unavailable. Try again later."
+	}
+
+	"feature_cooldown"
+	{
+		"#format"   "{1:i},{2:i},{3:i},{4:i}"
+		"ru"        "Следующий кейс будет доступен через {GREEN}{1}{DEFAULT} д. {GREEN}{2}{DEFAULT} ч. {GREEN}{3}{DEFAULT} м. {GREEN}{4}{DEFAULT} с."
+		"en"        "The next case is available in {GREEN}{1}{DEFAULT}d. {GREEN}{2}{DEFAULT}h. {GREEN}{3}{DEFAULT}m. {GREEN}{4}{DEFAULT}s."
+	}
+
+	"feature_case_menu"
+	{
+		"ru"        "Типы кейсов"
+		"en"        "Case types"
+	}
+
+	"feature_case_hint"
+	{
+		"#format"   "{1:s}"
+		"ru"        "Открывается: {GREEN}{1}{DEFAULT}"
+		"en"        "Opening: {GREEN}{1}{DEFAULT}"
+	}
+
+	"feature_reward_hint"
+	{
+		"#format"   "{1:s},{2:i},{3:i}"
+		"ru"        "Награда: {GREEN}{1}{DEFAULT} | серия: {2} | бонус: +{3}%"
+		"en"        "Reward: {GREEN}{1}{DEFAULT} | streak: {2} | bonus: +{3}%"
+		}
+
+	"feature_received"
+	{
+		"#format"   "{1:s}"
+		"ru"        "Вы получили: {GREEN}{1}{DEFAULT}"
+		"en"        "You received: {GREEN}{1}{DEFAULT}"
+	}
+
+	"feature_reward_credits"
+	{
+		"#format"   "{1:i}"
+		"ru"        "{1} кредитов"
+		"en"        "{1} credits"
+	}
+
+	"feature_reward_exp"
+	{
+		"#format"   "{1:i}"
+		"ru"        "{1} опыта"
+		"en"        "{1} experience"
+	}
+
+	"feature_reward_vip"
+	{
+		"#format"   "{1:s},{2:i}"
+		"ru"        "VIP {1} на {2} сек."
+		"en"        "VIP {1} for {2} sec."
+	}
+
+	"feature_reward_shop"
+	{
+		"#format"   "{1:s}"
+		"ru"        "предмет Shop: {1}"
+		"en"        "Shop item: {1}"
+	}
+
+	"feature_reward_multiplier"
+	{
+		"#format"   "{1:f}"
+		"ru"        "множитель опыта x{1}"
+		"en"        "experience multiplier x{1}"
+	}
+
+	"feature_reward_extra"
+	{
+		"#format"   "{1:i}"
+		"ru"        "+{1} дополнительный кейс"
+		"en"        "+{1} extra case"
+	}
+
+	"feature_reward_fallback"
+	{
+		"ru"        "Редкая награда недоступна, выдана компенсация кредитами."
+		"en"        "The rare reward is unavailable; credits were given as compensation."
+	}
 }
